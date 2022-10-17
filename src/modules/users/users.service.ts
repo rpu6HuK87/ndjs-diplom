@@ -9,26 +9,24 @@ import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService implements IUserService {
-	constructor(
-		@InjectModel(User.name) private UserModel: Model<UserDocument>,
-	) {}
+  constructor(@InjectModel(User.name) private UserModel: Model<UserDocument>) {}
 
   async create(data: CreateUserDto): Promise<UserDocument> {
-		//console.log('create', data)
-    data.password = await bcrypt.hash(data.password, 10)
-		const user = new this.UserModel(data)
-		return user.save()
+    //console.log('create', data)
+    data.password = await bcrypt.hash(data.password, 10);
+    const user = new this.UserModel(data);
+    return user.save();
   }
 
-	findById(id: Types.ObjectId): Promise<UserDocument> {
-		return this.UserModel.findById(id).exec()
-	}
+  findById(id: Types.ObjectId): Promise<UserDocument> {
+    return this.UserModel.findById(id).exec();
+  }
 
-	async findByEmail(email: string): Promise<UserDocument> {
-		return this.UserModel.findOne({ email: email }).exec()
-	}
+  async findByEmail(email: string): Promise<UserDocument> {
+    return this.UserModel.findOne({ email: email }).exec();
+  }
 
-	findAll(params: SearchUserParams): Promise<UserDocument[]> {
-		return this.UserModel.find(params).exec()
-	}
+  findAll(params: SearchUserParams): Promise<UserDocument[]> {
+    return this.UserModel.find(params).exec();
+  }
 }

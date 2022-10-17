@@ -4,9 +4,7 @@ import ValidationError = Error.ValidationError;
 
 @Catch(ValidationError)
 export class ValidationDtoFilter implements RpcExceptionFilter {
-
   catch(exception: ValidationError, host: ArgumentsHost): any {
-
     const ctx = host.switchToHttp(),
       response = ctx.getResponse();
 

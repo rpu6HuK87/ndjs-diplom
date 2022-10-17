@@ -1,5 +1,5 @@
-import { User } from "../schemas/user.schema";
-import { Types } from 'mongoose'
+import { User } from '../schemas/user.schema';
+import { Types } from 'mongoose';
 
 export interface SearchUserParams {
   limit: number;
