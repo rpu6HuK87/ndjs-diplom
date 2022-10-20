@@ -11,8 +11,6 @@ import {
   UseFilters
 } from '@nestjs/common'
 import { HotelRoomsService, HotelsService } from './hotels.service'
-import { CreateHotelDto } from './dto/create-hotel.dto'
-import { UpdateHotelDto } from './dto/update-hotel.dto'
 
 import { HotelRoom, HotelRoomDocument } from './schemas/hotel-room.schema'
 import { SearchRoomsParams } from './interfaces/hotel.interface'
@@ -31,16 +29,20 @@ export class HotelsController {
   @Roles('admin')
   @UseFilters(ValidationDtoFilter)
   @Post()
-  async createHotel(@Body() data: CreateHotelDto) {
+  async createHotel(@Body() data: Hotel) {
     return await this.hotelsService.create(data)
   }
 
   @Roles('admin')
   @Get()
-  public search(@Query() params): Promise<Hotel[]> {
+  public search(@Query() params: Pick<Hotel, 'title'>): Promise<Hotel[]> {
     //TODO: limit&offset
     return this.hotelsService.search(params)
   }
+
+  /* @Roles('admin')
+  @Put(':id') */
+  //TODO: в сервисе Hotel нет update метода!
 }
 
 @Controller('common/hotel-rooms')

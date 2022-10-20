@@ -1,8 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model, Types } from 'mongoose'
-import { CreateHotelDto } from './dto/create-hotel.dto'
-import { UpdateHotelDto } from './dto/update-hotel.dto'
 import {
   HotelRoomService,
   IHotelService,
@@ -17,7 +15,7 @@ export class HotelsService implements IHotelService {
     @InjectModel(Hotel.name) private HotelModel: Model<HotelDocument>
   ) {}
 
-  async create(data: CreateHotelDto): Promise<HotelDocument> {
+  async create(data: Hotel): Promise<HotelDocument> {
     const time = Date.now()
     const hotel = new this.HotelModel({
       ...data,
@@ -43,12 +41,13 @@ export class HotelRoomsService implements HotelRoomService {
     private HotelRoomModel: Model<HotelRoomDocument>
   ) {}
 
-  async create(data: Partial<HotelRoom>): Promise<HotelRoom> {
+  create(data: Partial<HotelRoom>): Promise<HotelRoom> {
     const room = new this.HotelRoomModel(data)
     return room.save()
   }
 
   findById(id: Types.ObjectId, isEnabled?: true): Promise<HotelRoom> {
+    //TODO: isEnabled?
     return this.HotelRoomModel.findById(id).exec()
   }
 
