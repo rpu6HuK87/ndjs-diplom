@@ -8,7 +8,8 @@ import {
   Delete,
   Query,
   UseGuards,
-  UseFilters
+  UseFilters,
+  Put
 } from '@nestjs/common'
 import { HotelRoomsService, HotelsService } from './hotels.service'
 
@@ -22,27 +23,47 @@ import { RolesGuard } from 'src/common/guards/roles.guard'
 import { Hotel } from './schemas/hotel.schema'
 
 @UseGuards(AuthenticatedGuard, RolesGuard)
-@Controller('admin/hotels')
+@Controller('admin')
 export class HotelsController {
-  constructor(private readonly hotelsService: HotelsService) {}
+  constructor(
+    private readonly hotelsService: HotelsService,
+    private readonly hotelRoomsService: HotelRoomsService
+  ) {}
 
   @Roles('admin')
   @UseFilters(ValidationDtoFilter)
-  @Post()
+  @Post('hotels')
   async createHotel(@Body() data: Hotel) {
     return await this.hotelsService.create(data)
   }
 
   @Roles('admin')
-  @Get()
+  @Get('hotels')
   public search(@Query() params: Pick<Hotel, 'title'>): Promise<Hotel[]> {
     //TODO: limit&offset
     return this.hotelsService.search(params)
   }
 
   /* @Roles('admin')
-  @Put(':id') */
+  @Put('hotels/:id') */
   //TODO: в сервисе Hotel нет update метода!
+
+  @Roles('admin')
+  @UseFilters(ValidationDtoFilter)
+  @Post('hotel-rooms')
+  async createHotelRoom(@Body() data: Hotel) {
+    //TODO: multipart/form-data загрузка файлов
+    return await this.hotelRoomsService.create(data)
+  }
+
+  @Roles('admin')
+  @Put('hotel-rooms/:id')
+  updateHotelRoom(
+    @Param('id') id: Types.ObjectId,
+    @Body() data: HotelRoomDocument
+  ) {
+    return this.hotelRoomsService.update(id, data)
+  }
 }
 
 @Controller('common/hotel-rooms')
