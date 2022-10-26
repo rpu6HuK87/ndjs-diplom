@@ -9,18 +9,23 @@ import {
   Query,
   UseGuards,
   UseFilters,
-  Put
+  Put,
+  UseInterceptors,
+  UploadedFiles
 } from '@nestjs/common'
-import { HotelRoomsService, HotelsService } from './hotels.service'
+import { Types } from 'mongoose'
+import { Express } from 'express'
+import { FilesInterceptor } from '@nestjs/platform-express'
 
+import { HotelRoomsService, HotelsService } from './hotels.service'
 import { HotelRoom, HotelRoomDocument } from './schemas/hotel-room.schema'
 import { SearchRoomsParams } from './interfaces/hotel.interface'
-import { Types } from 'mongoose'
 import { AuthenticatedGuard } from 'src/common/guards/authenticated.guard'
 import { Roles } from 'src/common/decorators/roles.decorator'
 import { ValidationDtoFilter } from 'src/common/exceptions/filters/dto-validation.filter'
 import { RolesGuard } from 'src/common/guards/roles.guard'
 import { Hotel } from './schemas/hotel.schema'
+import { date } from 'joi'
 
 @UseGuards(AuthenticatedGuard, RolesGuard)
 @Controller('admin')
@@ -50,9 +55,15 @@ export class HotelsController {
 
   @Roles('admin')
   @UseFilters(ValidationDtoFilter)
+  @UseInterceptors(FilesInterceptor('files'))
   @Post('hotel-rooms')
-  async createHotelRoom(@Body() data: Hotel) {
+  async createHotelRoom(
+    @Body() data: HotelRoom,
+    @UploadedFiles() files: Array<Express.Multer.File>
+  ) {
     //TODO: multipart/form-data загрузка файлов
+    data.images = files.map((file) => file.originalname)
+    console.log(files)
     return await this.hotelRoomsService.create(data)
   }
 

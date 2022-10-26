@@ -4,7 +4,9 @@ import { Hotel } from './hotel.schema'
 
 export type HotelRoomDocument = HotelRoom & Document
 
-@Schema()
+@Schema({
+  timestamps: true
+})
 export class HotelRoom {
   @Prop({ required: true, type: Types.ObjectId, ref: 'Hotel' })
   hotel: Hotel
@@ -14,12 +16,6 @@ export class HotelRoom {
 
   @Prop({ required: true, default: [] })
   images: string[]
-
-  @Prop({ required: true, type: String })
-  createdAt: Date
-
-  @Prop({ required: true, type: String })
-  updatedAt: Date
 
   @Prop({ required: true, default: true })
   isEnabled: boolean
