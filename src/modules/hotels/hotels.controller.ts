@@ -11,10 +11,10 @@ import {
   UseFilters,
   Put,
   UseInterceptors,
-  UploadedFiles
+  UploadedFiles,
+  Response
 } from '@nestjs/common'
 import { Types } from 'mongoose'
-import { Express } from 'express'
 import { FilesInterceptor } from '@nestjs/platform-express'
 
 import { HotelRoomsService, HotelsService } from './hotels.service'
@@ -25,7 +25,7 @@ import { Roles } from 'src/common/decorators/roles.decorator'
 import { ValidationDtoFilter } from 'src/common/exceptions/filters/dto-validation.filter'
 import { RolesGuard } from 'src/common/guards/roles.guard'
 import { Hotel } from './schemas/hotel.schema'
-import { date } from 'joi'
+import { isEnabledFlag } from 'src/common/decorators/my-custom.decorator'
 
 @UseGuards(AuthenticatedGuard, RolesGuard)
 @Controller('admin')
@@ -82,8 +82,13 @@ export class HotelRoomsController {
   constructor(private readonly hotelRoomsService: HotelRoomsService) {}
 
   @Get()
-  public search(@Query() params: SearchRoomsParams): Promise<HotelRoom[]> {
+  public search(
+    @Query() params: SearchRoomsParams,
+    @isEnabledFlag() flag: true
+  ): Promise<HotelRoom[]> {
     //TODO: limit&offset&hotelid
+    if (flag) params.isEnabled = flag
+    console.log('isEnabledFlag', flag)
     return this.hotelRoomsService.search(params)
   }
   @Get(':id')

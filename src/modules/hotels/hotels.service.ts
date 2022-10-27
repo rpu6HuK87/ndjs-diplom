@@ -46,12 +46,16 @@ export class HotelRoomsService implements HotelRoomService {
     return room.save()
   }
 
-  findById(id: Types.ObjectId, isEnabled?: true): Promise<HotelRoom> {
-    //TODO: isEnabled?
-    return this.HotelRoomModel.findById(id).exec()
+  async findById(id: Types.ObjectId, isEnabled?: true): Promise<HotelRoom> {
+    //Q: Не уверен, что верно отфильтровал по флагу isEnabled
+
+    const room = await this.HotelRoomModel.findById(id).exec()
+
+    return !isEnabled ? room : isEnabled && room.isEnabled ? room : null
   }
 
   search(params: SearchRoomsParams): Promise<HotelRoom[]> {
+    console.log('isEnabled', params)
     return this.HotelRoomModel.find(params).exec()
   }
 
