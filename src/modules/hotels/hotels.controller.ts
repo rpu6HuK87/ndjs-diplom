@@ -45,13 +45,12 @@ export class HotelsController {
   @Roles('admin')
   @Get('hotels')
   public search(@Query() params: Pick<Hotel, 'title'>): Promise<Hotel[]> {
-    //TODO: limit&offset
     return this.hotelsService.search(params)
   }
 
   /* @Roles('admin')
   @Put('hotels/:id') */
-  //TODO: в сервисе Hotel нет update метода!
+  //TODO: в сервисе HotelsService нет update метода!
 
   @Roles('admin')
   @UseFilters(ValidationDtoFilter)
@@ -61,9 +60,9 @@ export class HotelsController {
     @Body() data: HotelRoom,
     @UploadedFiles() files: Array<Express.Multer.File>
   ) {
-    //TODO: multipart/form-data загрузка файлов
+    //TODO: нужна ли реализация сохранения файлов?
     data.images = files.map((file) => file.originalname)
-    console.log(files)
+    //console.log(files)
     return await this.hotelRoomsService.create(data)
   }
 
@@ -71,8 +70,10 @@ export class HotelsController {
   @Put('hotel-rooms/:id')
   updateHotelRoom(
     @Param('id') id: Types.ObjectId,
-    @Body() data: HotelRoomDocument
+    @Body() data: HotelRoomDocument,
+    @UploadedFiles() files: Array<Express.Multer.File>
   ) {
+    data.images = files.map((file) => file.originalname)
     return this.hotelRoomsService.update(id, data)
   }
 }
@@ -86,13 +87,15 @@ export class HotelRoomsController {
     @Query() params: SearchRoomsParams,
     @isEnabledFlag() flag: true
   ): Promise<HotelRoom[]> {
-    //TODO: limit&offset&hotelid
     if (flag) params.isEnabled = flag
-    console.log('isEnabledFlag', flag)
     return this.hotelRoomsService.search(params)
   }
+
   @Get(':id')
-  public findById(@Param('id') id: Types.ObjectId): Promise<HotelRoom> {
-    return this.hotelRoomsService.findById(id)
+  public findById(
+    @Param('id') id: Types.ObjectId,
+    @isEnabledFlag() flag: true
+  ): Promise<HotelRoom> {
+    return this.hotelRoomsService.findById(id, flag)
   }
 }

@@ -30,7 +30,12 @@ export class HotelsService implements IHotelService {
   }
 
   search(params: Pick<Hotel, 'title'>): Promise<Hotel[]> {
-    return this.HotelModel.find(params).exec()
+    //TODO: откуда взять offset и limit?
+    return this.HotelModel.find(params, {
+      createdAt: 0,
+      updatedAt: 0,
+      __v: 0
+    }).exec()
   }
 }
 
@@ -43,23 +48,60 @@ export class HotelRoomsService implements HotelRoomService {
 
   create(data: Partial<HotelRoom>): Promise<HotelRoom> {
     const room = new this.HotelRoomModel(data)
-    return room.save()
+    return room.save().then((room) =>
+      room.populate({
+        path: 'hotel',
+        select: { title: 1, description: 1 }
+      })
+    )
   }
 
   async findById(id: Types.ObjectId, isEnabled?: true): Promise<HotelRoom> {
     //Q: Не уверен, что верно отфильтровал по флагу isEnabled
+    console.log(isEnabled)
+    const room = await this.HotelRoomModel.findById(id, {
+      isEnabled: 0,
+      createdAt: 0,
+      updatedAt: 0,
+      __v: 0
+    })
+      .limit(1)
+      .populate({
+        path: 'hotel',
+        select: { title: 1, description: 1 }
+      })
+      .exec()
 
-    const room = await this.HotelRoomModel.findById(id).exec()
-
-    return !isEnabled ? room : isEnabled && room.isEnabled ? room : null
+    return (isEnabled && room.isEnabled) || isEnabled === undefined
+      ? room
+      : null
   }
 
   search(params: SearchRoomsParams): Promise<HotelRoom[]> {
-    console.log('isEnabled', params)
-    return this.HotelRoomModel.find(params).exec()
+    const { limit, offset = 0, ...rest } = params
+    const rooms = this.HotelRoomModel.find(rest, {
+      isEnabled: 0,
+      createdAt: 0,
+      updatedAt: 0,
+      __v: 0
+    })
+      .skip(offset)
+      .populate({
+        path: 'hotel',
+        select: { title: 1 }
+      })
+    if (limit) rooms.limit(limit)
+    return rooms.exec()
   }
 
   update(id: Types.ObjectId, data: Partial<HotelRoom>): Promise<HotelRoom> {
+    //TODO: как быть с images? перезапись или объединение
+    //TODO: Формат ответа
+    /*     const room = this.HotelRoomModel.findById(id, {
+      createdAt: 0,
+      updatedAt: 0,
+      __v: 0
+    }) */
     return this.HotelRoomModel.findByIdAndUpdate(id, data).exec()
   }
 }
