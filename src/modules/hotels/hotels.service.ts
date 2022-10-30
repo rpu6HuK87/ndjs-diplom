@@ -58,9 +58,8 @@ export class HotelRoomsService implements HotelRoomService {
 
   async findById(id: Types.ObjectId, isEnabled?: true): Promise<HotelRoom> {
     //Q: Не уверен, что верно отфильтровал по флагу isEnabled
-    console.log(isEnabled)
+    //console.log(isEnabled)
     const room = await this.HotelRoomModel.findById(id, {
-      isEnabled: 0,
       createdAt: 0,
       updatedAt: 0,
       __v: 0
@@ -72,7 +71,7 @@ export class HotelRoomsService implements HotelRoomService {
       })
       .exec()
 
-    return (isEnabled && room.isEnabled) || isEnabled === undefined
+    return (isEnabled && room?.isEnabled) || isEnabled === undefined
       ? room
       : null
   }

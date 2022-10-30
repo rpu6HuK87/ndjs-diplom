@@ -7,6 +7,7 @@ import {
   SupportRequest,
   SupportRequestSchema
 } from './schemas/support-requests.schema'
+import { SupportController } from './support.controller'
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import {
       { name: SupportRequest.name, schema: SupportRequestSchema }
     ])
   ],
+  controllers: [SupportController],
   providers: [SupportGateway, SupportService],
   exports: [SupportService]
 })

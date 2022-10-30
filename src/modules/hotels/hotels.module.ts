@@ -17,8 +17,9 @@ import { HotelRoomsMiddleware } from 'src/common/middlewares/hotel-rooms.middlew
   providers: [HotelsService, HotelRoomsService],
   exports: [HotelsService, HotelRoomsService]
 })
-export class HotelsModule implements NestModule {
+export class HotelsModule {}
+/* export class HotelsModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(HotelRoomsMiddleware).forRoutes('common/hotel-rooms')
   }
-}
+} */
