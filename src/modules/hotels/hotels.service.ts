@@ -22,16 +22,16 @@ export class HotelsService implements IHotelService {
       createdAt: time,
       updatedAt: time
     })
-    return hotel.save()
+    return await hotel.save()
   }
 
-  findById(id: Types.ObjectId): Promise<HotelDocument> {
-    return this.HotelModel.findById(id).exec()
+  async findById(id: Types.ObjectId): Promise<HotelDocument> {
+    return await this.HotelModel.findById(id).exec()
   }
 
-  search(params: Pick<Hotel, 'title'>): Promise<Hotel[]> {
+  async search(params: Pick<Hotel, 'title'>): Promise<Hotel[]> {
     //TODO: откуда взять offset и limit?
-    return this.HotelModel.find(params, {
+    return await this.HotelModel.find(params, {
       createdAt: 0,
       updatedAt: 0,
       __v: 0
@@ -46,9 +46,9 @@ export class HotelRoomsService implements HotelRoomService {
     private HotelRoomModel: Model<HotelRoomDocument>
   ) {}
 
-  create(data: Partial<HotelRoom>): Promise<HotelRoom> {
+  async create(data: Partial<HotelRoom>): Promise<HotelRoom> {
     const room = new this.HotelRoomModel(data)
-    return room.save().then((room) =>
+    return await room.save().then((room) =>
       room.populate({
         path: 'hotel',
         select: { title: 1, description: 1 }

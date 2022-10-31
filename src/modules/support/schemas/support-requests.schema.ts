@@ -10,13 +10,13 @@ export class SupportRequest {
   @Prop({ required: true, type: Types.ObjectId })
   user: Types.ObjectId
 
-  @Prop({ required: true, type: String })
-  createdAt: Date
+  @Prop({ required: true, type: Date, default: Date.now() })
+  createdAt: string
 
   @Prop({ type: Message, ref: 'Message' })
   messages: Message[]
 
-  @Prop({ type: Boolean })
+  @Prop({ type: Boolean, default: true })
   isActive: boolean
 }
 

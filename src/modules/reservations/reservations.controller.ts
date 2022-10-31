@@ -13,8 +13,6 @@ import {
 import { Types } from 'mongoose'
 import { Roles } from 'src/common/decorators/roles.decorator'
 import { ValidationDtoFilter } from 'src/common/exceptions/filters/dto-validation.filter'
-import { AuthenticatedGuard } from 'src/common/guards/authenticated.guard'
-import { RolesGuard } from 'src/common/guards/roles.guard'
 import { ReservationSearchOptions } from './interfaces/reservation.interface'
 import { ReservationsService } from './reservations.service'
 import { Reservation } from './schemas/reservation.schema'
@@ -22,7 +20,6 @@ import { isEnabledFlag, User } from 'src/common/decorators/my-custom.decorator'
 import { HotelRoomsService } from '../hotels/hotels.service'
 import { HttpException } from '@nestjs/common'
 
-@UseGuards(AuthenticatedGuard, RolesGuard)
 @Controller('client')
 export class ReservationsController {
   constructor(
@@ -71,7 +68,6 @@ export class ReservationsController {
   }
 }
 
-@UseGuards(AuthenticatedGuard, RolesGuard)
 @Controller('manager')
 export class ReservationsManagerController {
   constructor(private readonly reservationsService: ReservationsService) {}

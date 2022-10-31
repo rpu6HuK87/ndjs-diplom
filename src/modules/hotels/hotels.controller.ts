@@ -20,14 +20,14 @@ import { FilesInterceptor } from '@nestjs/platform-express'
 import { HotelRoomsService, HotelsService } from './hotels.service'
 import { HotelRoom, HotelRoomDocument } from './schemas/hotel-room.schema'
 import { SearchRoomsParams } from './interfaces/hotel.interface'
-import { AuthenticatedGuard } from 'src/common/guards/authenticated.guard'
 import { Roles } from 'src/common/decorators/roles.decorator'
 import { ValidationDtoFilter } from 'src/common/exceptions/filters/dto-validation.filter'
-import { RolesGuard } from 'src/common/guards/roles.guard'
 import { Hotel } from './schemas/hotel.schema'
-import { isEnabledFlag } from 'src/common/decorators/my-custom.decorator'
+import {
+  isEnabledFlag,
+  isPublicRoute
+} from 'src/common/decorators/my-custom.decorator'
 
-@UseGuards(AuthenticatedGuard, RolesGuard)
 @Controller('admin')
 export class HotelsController {
   constructor(
@@ -44,7 +44,7 @@ export class HotelsController {
 
   @Roles('admin')
   @Get('hotels')
-  public search(@Query() params: Pick<Hotel, 'title'>): Promise<Hotel[]> {
+  search(@Query() params: Pick<Hotel, 'title'>): Promise<Hotel[]> {
     return this.hotelsService.search(params)
   }
 
@@ -82,6 +82,7 @@ export class HotelsController {
 export class HotelRoomsController {
   constructor(private readonly hotelRoomsService: HotelRoomsService) {}
 
+  @isPublicRoute()
   @Get()
   public search(
     @Query() params: SearchRoomsParams,

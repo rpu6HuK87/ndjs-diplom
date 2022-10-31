@@ -1,6 +1,6 @@
 import { Types } from 'mongoose'
 
-import { Message } from '../schemas/message.schema'
+import { Message, MessageDocument } from '../schemas/message.schema'
 import { SupportRequest } from '../schemas/support-requests.schema'
 
 export interface CreateSupportRequestDto {
@@ -20,15 +20,17 @@ export interface MarkMessagesAsReadDto {
 export interface GetChatListParams {
   user: Types.ObjectId | null
   isActive: boolean
+  limit: number
+  offset: number
 }
 
 export interface ISupportRequestService {
   findSupportRequests(params: GetChatListParams): Promise<SupportRequest[]>
   sendMessage(data: SendMessageDto): Promise<Message>
   getMessages(supportRequest: Types.ObjectId): Promise<Message[]>
-  subscribe(
+  /* subscribe(
     handler: (supportRequest: SupportRequest, message: Message) => void
-  ): () => void
+  ): () => void */
 }
 
 export interface ISupportRequestClientService {

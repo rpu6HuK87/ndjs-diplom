@@ -12,13 +12,13 @@ import {
 import { from, map, Observable, pipe } from 'rxjs'
 import { Socket, Server } from 'socket.io'
 
-import { SupportService } from './support.service'
+import { SupportRequestClientService } from './support.service'
 
 @WebSocketGateway()
 export class SupportGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
-  constructor(private readonly supportService: SupportService) {}
+  constructor(private readonly supportService: SupportRequestClientService) {}
 
   @WebSocketServer() ws: Server
 
