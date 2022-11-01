@@ -1,10 +1,5 @@
-import {
-  Body,
-  Controller,
-  Post,
-  UseFilters,
-  BadRequestException
-} from '@nestjs/common'
+import { Body, Controller, Post, UseFilters, BadRequestException } from '@nestjs/common'
+import { isPublicRoute } from 'src/common/decorators/my-custom.decorator'
 import { ValidationDtoFilter } from 'src/common/exceptions/filters/dto-validation.filter'
 import { User } from './schemas/user.schema'
 import { UsersService } from './users.service'
@@ -12,7 +7,7 @@ import { UsersService } from './users.service'
 @Controller()
 export class UsersController {
   constructor(private userService: UsersService) {}
-
+  @isPublicRoute()
   @UseFilters(ValidationDtoFilter)
   @Post('client/register')
   async create(@Body() body: User) {

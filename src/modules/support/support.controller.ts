@@ -1,31 +1,14 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  UseFilters,
-  Query
-} from '@nestjs/common'
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseFilters, Query } from '@nestjs/common'
 import { Types } from 'mongoose'
-import { isEnabledFlag, User } from 'src/common/decorators/my-custom.decorator'
+import { identity } from 'rxjs'
+import { User } from 'src/common/decorators/my-custom.decorator'
 import { Roles } from 'src/common/decorators/roles.decorator'
 import { ValidationDtoFilter } from 'src/common/exceptions/filters/dto-validation.filter'
-import {
-  CreateSupportRequestDto,
-  GetChatListParams,
-  SendMessageDto
-} from './interfaces/support.interface'
-import { SupportRequest } from './schemas/support-requests.schema'
-import {
-  SupportRequestClientService,
-  SupportRequestService
-} from './support.service'
+import { CreateSupportRequestDto, GetChatListParams, SendMessageDto } from './interfaces/support.interface'
+import { SupportRequestClientService, SupportRequestService } from './support.service'
 
 @Controller('client/support-requests')
-export class SupportController {
+export class SupportClientController {
   constructor(
     private readonly supportRequestClientService: SupportRequestClientService,
     private readonly supportRequestService: SupportRequestService
@@ -34,13 +17,8 @@ export class SupportController {
   @Roles('client')
   @UseFilters(ValidationDtoFilter)
   @Post()
-  async createSupportRequest(
-    @Body() data: CreateSupportRequestDto,
-    @User() user
-  ) {
-    const request = await this.supportRequestClientService.createSupportRequest(
-      { ...data, user: user._id }
-    )
+  async createSupportRequest(@Body() data: CreateSupportRequestDto, @User() user) {
+    const request = await this.supportRequestClientService.createSupportRequest({ ...data, user: user._id })
 
     const message = await this.supportRequestService.sendMessage({
       author: user._id,
@@ -61,20 +39,18 @@ export class SupportController {
   @Roles('client')
   @Get()
   async getSupportRequests(@Query() params: GetChatListParams, @User() user) {
-    console.log(user)
+    params.isActive = Boolean(params?.isActive)
     const requests = await this.supportRequestService.findSupportRequests({
       ...params,
       user: user._id
     })
-    console.log(requests)
-    /* return requests.map((req) => {
-      const { messages, ...rest } = req
-      console.log(messages)
+    return requests.map((req) => {
+      const { messages, user, ...rest } = req
       return {
         ...rest,
-        hasNewMessages: messages.find((msg) => !msg.readAt) ? true : false
+        hasNewMessages: messages?.find((msg) => !msg.readAt && msg.author != user._id) ? true : false
       }
-    }) */
+    })
   }
 
   @Roles('client')
@@ -94,5 +70,36 @@ export class SupportController {
     })
 
     return [message]
+  }
+}
+@Controller('common/support-requests')
+export class SupportCommonController {
+  constructor(private readonly supportRequestService: SupportRequestService) {}
+  @Roles('client', 'manager')
+  @Get(':id/messages')
+  async getSupportRequestMessages(@Param('id') requestId: Types.ObjectId, @User() user) {
+    const messages = await this.supportRequestService.getMessages(requestId)
+    return messages
+  }
+}
+@Controller('manager/support-requests')
+export class SupportManagerController {
+  constructor(private readonly supportRequestService: SupportRequestService) {}
+
+  @Roles('manager')
+  @Get()
+  async getSupportRequests(@Query() params: GetChatListParams) {
+    params.isActive = Boolean(params?.isActive)
+    const requests = await this.supportRequestService.findSupportRequests(params)
+    //console.log(requests)
+    return requests.map((req) => {
+      const { messages, user, ...rest } = req
+      const { _id, role, __v, password, ...client } = user
+      return {
+        ...rest,
+        hasNewMessages: messages?.find((msg) => !msg.readAt) ? true : false,
+        client: client
+      }
+    })
   }
 }

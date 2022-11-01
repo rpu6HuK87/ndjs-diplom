@@ -1,10 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model, Types } from 'mongoose'
-import {
-  SupportRequest,
-  SupportRequestDocument
-} from './schemas/support-requests.schema'
+import { SupportRequest, SupportRequestDocument } from './schemas/support-requests.schema'
 import {
   CreateSupportRequestDto,
   GetChatListParams,
@@ -16,17 +13,13 @@ import {
 import { Message, MessageDocument } from './schemas/message.schema'
 
 @Injectable()
-export class SupportRequestClientService
-  implements ISupportRequestClientService
-{
+export class SupportRequestClientService implements ISupportRequestClientService {
   constructor(
     @InjectModel(SupportRequest.name)
     private SupportRequestModel: Model<SupportRequest>
   ) {}
 
-  async createSupportRequest(
-    data: CreateSupportRequestDto
-  ): Promise<SupportRequestDocument> {
+  async createSupportRequest(data: CreateSupportRequestDto): Promise<SupportRequestDocument> {
     const supportRequest = new this.SupportRequestModel(data)
     return await supportRequest.save()
   }
@@ -52,9 +45,7 @@ export class SupportRequestService implements ISupportRequestService {
   async sendMessage(data: SendMessageDto): Promise<Message> {
     const message = await new this.MessageModel(data).save()
     if (message) {
-      const supportRequest = await this.SupportRequestModel.findById(
-        data.supportRequest
-      )
+      const supportRequest = await this.SupportRequestModel.findById(data.supportRequest)
       if (supportRequest) {
         await this.SupportRequestModel.findByIdAndUpdate(
           data.supportRequest,
@@ -69,25 +60,19 @@ export class SupportRequestService implements ISupportRequestService {
     return message
   }
 
-  async findSupportRequests(
-    params: GetChatListParams
-  ): Promise<SupportRequest[]> {
+  async findSupportRequests(params: GetChatListParams): Promise<SupportRequest[]> {
     const { limit, offset = 0, ...rest } = params
-    const requests = this.SupportRequestModel.find(rest, {
-      __v: 0
-    })
-      .skip(offset)
-      .populate({
-        path: 'messages',
-        model: 'Message'
-      })
-    if (limit) requests.limit(limit)
-    return await requests.exec()
+    const request = this.SupportRequestModel.find(rest).skip(offset)
+    if (!rest.user) request.populate('user')
+    if (limit) request.limit(limit)
+
+    return await request.exec()
   }
 
   async getMessages(supportRequest: Types.ObjectId): Promise<Message[]> {
-    const supreq = await this.SupportRequestModel.findById(supportRequest)
-    return supreq.messages
+    const request = await this.SupportRequestModel.findById(supportRequest) //.populate('messages.author')
+    //console.log(request)
+    return request.messages
   }
 
   /* async subscribe(handler: (supportRequest: SupportRequest, message: Message) => void): () => void {

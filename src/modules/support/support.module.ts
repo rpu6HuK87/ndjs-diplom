@@ -1,16 +1,10 @@
 import { Module } from '@nestjs/common'
 import { MongooseModule } from '@nestjs/mongoose'
 
-import {
-  SupportRequestClientService,
-  SupportRequestService
-} from './support.service'
+import { SupportRequestClientService, SupportRequestService } from './support.service'
 import { SupportGateway } from './support.gateway'
-import {
-  SupportRequest,
-  SupportRequestSchema
-} from './schemas/support-requests.schema'
-import { SupportController } from './support.controller'
+import { SupportRequest, SupportRequestSchema } from './schemas/support-requests.schema'
+import { SupportClientController, SupportManagerController, SupportCommonController } from './support.controller'
 import { Message, MessageSchema } from './schemas/message.schema'
 
 @Module({
@@ -20,12 +14,8 @@ import { Message, MessageSchema } from './schemas/message.schema'
       { name: Message.name, schema: MessageSchema }
     ])
   ],
-  controllers: [SupportController],
-  providers: [
-    SupportGateway,
-    SupportRequestClientService,
-    SupportRequestService
-  ],
+  controllers: [SupportClientController, SupportManagerController, SupportCommonController],
+  providers: [SupportGateway, SupportRequestClientService, SupportRequestService],
   exports: [SupportRequestClientService, SupportRequestService]
 })
 export class SupportModule {}
