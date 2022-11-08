@@ -43,10 +43,10 @@ export class SupportRequestService implements ISupportRequestService {
   ) {}
 
   async sendMessage(data: SendMessageDto): Promise<Message> {
-    const message = await new this.MessageModel(data).save()
-    if (message) {
-      const supportRequest = await this.SupportRequestModel.findById(data.supportRequest)
-      if (supportRequest) {
+    const supportRequest = await this.SupportRequestModel.findById(data.supportRequest)
+    if (supportRequest) {
+      const message = await new this.MessageModel(data).save()
+      if (message) {
         await this.SupportRequestModel.findByIdAndUpdate(
           data.supportRequest,
           { $push: { messages: message } }
@@ -55,9 +55,8 @@ export class SupportRequestService implements ISupportRequestService {
         } */
         )
       }
+      return message
     }
-
-    return message
   }
 
   async findSupportRequests(params: GetChatListParams): Promise<SupportRequest[]> {

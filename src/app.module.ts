@@ -1,15 +1,17 @@
-import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
-import { ConfigModule } from '@nestjs/config';
+import { Module } from '@nestjs/common'
+import { MongooseModule } from '@nestjs/mongoose'
+import { ConfigModule } from '@nestjs/config'
 
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { AppController } from './app.controller'
+import { AppService } from './app.service'
 
-import { AuthModule } from './modules/auth/auth.module';
-import { UsersModule } from './modules/users/users.module';
-import { HotelsModule } from './modules/hotels/hotels.module';
-import { ReservationsModule } from './modules/reservations/reservations.module';
-import { SupportModule } from './modules/support/support.module';
+import { AuthModule } from './modules/auth/auth.module'
+import { UsersModule } from './modules/users/users.module'
+import { HotelsModule } from './modules/hotels/hotels.module'
+import { ReservationsModule } from './modules/reservations/reservations.module'
+import { SupportModule } from './modules/support/support.module'
+import { MulterModule } from '@nestjs/platform-express'
+import { diskStorage } from 'multer'
 
 @Module({
   imports: [
@@ -19,15 +21,20 @@ import { SupportModule } from './modules/support/support.module';
       pass: process.env.DB_PASSWORD,
       dbName: process.env.DB_NAME,
       useNewUrlParser: true,
-      useUnifiedTopology: true,
+      useUnifiedTopology: true
+    }),
+    MulterModule.register({
+      storage: diskStorage({
+        destination: './public/images/rooms'
+      })
     }),
     UsersModule,
     AuthModule,
     HotelsModule,
     ReservationsModule,
-    SupportModule,
+    SupportModule
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService]
 })
 export class AppModule {}

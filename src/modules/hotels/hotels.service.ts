@@ -1,19 +1,19 @@
 import { Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { Model, Types } from 'mongoose'
+import { FilterQuery, Model, Types } from 'mongoose'
 import {
   HotelRoomService,
   IHotelService,
-  SearchRoomsParams
+  SearchHotelParams,
+  SearchRoomsParams,
+  UpdateHotelParams
 } from './interfaces/hotel.interface'
 import { HotelRoom, HotelRoomDocument } from './schemas/hotel-room.schema'
 import { Hotel, HotelDocument } from './schemas/hotel.schema'
 
 @Injectable()
 export class HotelsService implements IHotelService {
-  constructor(
-    @InjectModel(Hotel.name) private HotelModel: Model<HotelDocument>
-  ) {}
+  constructor(@InjectModel(Hotel.name) private HotelModel: Model<HotelDocument>) {}
 
   async create(data: Hotel): Promise<HotelDocument> {
     const time = Date.now()
@@ -29,13 +29,17 @@ export class HotelsService implements IHotelService {
     return await this.HotelModel.findById(id).exec()
   }
 
-  async search(params: Pick<Hotel, 'title'>): Promise<Hotel[]> {
+  async search(params: SearchHotelParams): Promise<Hotel[]> {
     //TODO: откуда взять offset и limit?
     return await this.HotelModel.find(params, {
       createdAt: 0,
       updatedAt: 0,
       __v: 0
     }).exec()
+  }
+
+  async update(id: Types.ObjectId, data: UpdateHotelParams): Promise<Hotel> {
+    return this.HotelModel.findByIdAndUpdate(id, data).exec()
   }
 }
 
@@ -71,9 +75,7 @@ export class HotelRoomsService implements HotelRoomService {
       })
       .exec()
 
-    return (isEnabled && room?.isEnabled) || isEnabled === undefined
-      ? room
-      : null
+    return (isEnabled && room?.isEnabled) || isEnabled === undefined ? room : null
   }
 
   search(params: SearchRoomsParams): Promise<HotelRoom[]> {

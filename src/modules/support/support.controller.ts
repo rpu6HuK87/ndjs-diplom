@@ -44,10 +44,11 @@ export class SupportClientController {
       ...params,
       user: user._id
     })
+    //return requests
     return requests.map((req) => {
       const { messages, user, ...rest } = req
       return {
-        ...rest,
+        //...rest,
         hasNewMessages: messages?.find((msg) => !msg.readAt && msg.author != user._id) ? true : false
       }
     })
@@ -69,7 +70,7 @@ export class SupportClientController {
       text: data.text
     })
 
-    return [message]
+    return message
   }
 }
 @Controller('common/support-requests')

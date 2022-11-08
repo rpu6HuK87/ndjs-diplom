@@ -1,33 +1,28 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model, Types } from 'mongoose'
-import {
-  IReservation,
-  ReservationDto,
-  ReservationSearchOptions
-} from './interfaces/reservation.interface'
+import { IReservation, ReservationDto, ReservationSearchOptions } from './interfaces/reservation.interface'
 import { Reservation, ReservationDocument } from './schemas/reservation.schema'
 import { HttpException } from '@nestjs/common'
-//import { User } from 'src/common/decorators/my-custom.decorator'
+import { User } from '../users/schemas/user.schema'
 
 @Injectable()
 export class ReservationsService implements IReservation {
   constructor(
     @InjectModel(Reservation.name)
-    private ReservationModel: Model<ReservationDocument> //@Inject(User) private user
+    private ReservationModel: Model<ReservationDocument>
   ) {}
 
   async addReservation(data: ReservationDto): Promise<ReservationDocument> {
     //TODO: Метод IReservation.addReservation должен проверять, доступен ли номер на заданную дату.
-    const reservations = await this.ReservationModel.find({ room: data.room })
+    const reservations = await this.ReservationModel.find({ room: data.roomId })
     if (reservations) {
       if (
         reservations.find(
           (res: ReservationDocument) =>
             (new Date(data.dateStart) >= new Date(res.dateStart) &&
               new Date(data.dateStart) <= new Date(res.dateEnd)) ||
-            (new Date(data.dateEnd) >= new Date(res.dateStart) &&
-              new Date(data.dateEnd) <= new Date(res.dateEnd))
+            (new Date(data.dateEnd) >= new Date(res.dateStart) && new Date(data.dateEnd) <= new Date(res.dateEnd))
         )
       )
         return null
@@ -35,9 +30,7 @@ export class ReservationsService implements IReservation {
     return new this.ReservationModel(data).save()
   }
 
-  async getReservations(
-    filter: ReservationSearchOptions
-  ): Promise<Reservation[]> {
+  async getReservations(filter: ReservationSearchOptions): Promise<Reservation[]> {
     return await this.ReservationModel.find(filter, {
       user: 0,
       _id: 0,
@@ -54,11 +47,10 @@ export class ReservationsService implements IReservation {
       .exec()
   }
 
-  async removeReservation(id: Types.ObjectId): Promise<void> {
+  async removeReservation(id: Types.ObjectId, user?: User): Promise<void> {
     const reservation = await this.ReservationModel.findById(id)
     if (!reservation) throw new HttpException('Резервация не найдена', 400)
-    //TODO:как получить данные пользователя в сервисе?
-    //if (reservation.user != this.user.id) throw new HttpException('Доступ запрещен', 403)
+    if (user && reservation.user != user) throw new HttpException('Доступ запрещен', 403)
     this.ReservationModel.findByIdAndRemove(id).exec()
     return
   }

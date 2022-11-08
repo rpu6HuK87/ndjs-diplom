@@ -1,15 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  UseGuards,
-  UseFilters,
-  Query
-} from '@nestjs/common'
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, UseFilters, Query } from '@nestjs/common'
 import { Types } from 'mongoose'
 import { Roles } from 'src/common/decorators/roles.decorator'
 import { ValidationDtoFilter } from 'src/common/exceptions/filters/dto-validation.filter'
@@ -30,18 +19,12 @@ export class ReservationsController {
   @Roles('client')
   @UseFilters(ValidationDtoFilter)
   @Post('reservations')
-  async addReservation(
-    @Body() data,
-    @User() user,
-    @isEnabledFlag() flag: true
-  ) {
+  async addReservation(@Body() data, @User() user, @isEnabledFlag() flag: true) {
     const room = await this.hotelRoomService.findById(data.room, flag)
     if (!room) throw new HttpException('Номер не найден', 400)
 
     const reservationData = { ...data, user: user._id, hotel: room.hotel._id }
-    const reservation = await this.reservationsService.addReservation(
-      reservationData
-    )
+    const reservation = await this.reservationsService.addReservation(reservationData)
     if (!reservation) throw new HttpException('Номер занят', 400)
 
     return {
@@ -54,9 +37,7 @@ export class ReservationsController {
 
   @Roles('client')
   @Get('reservations')
-  getReservations(
-    @Query() filter: ReservationSearchOptions
-  ): Promise<Reservation[]> {
+  getReservations(@Query() filter: ReservationSearchOptions): Promise<Reservation[]> {
     return this.reservationsService.getReservations(filter)
   }
 
@@ -78,7 +59,7 @@ export class ReservationsManagerController {
     @Param('userId') id: Types.ObjectId,
     @Query() filter: ReservationSearchOptions
   ): Promise<Reservation[]> {
-    filter.user = id
+    filter.userId = id
 
     return this.reservationsService.getReservations(filter)
   }
