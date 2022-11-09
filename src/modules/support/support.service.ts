@@ -70,7 +70,6 @@ export class SupportRequestService implements ISupportRequestService {
 
   async getMessages(supportRequest: Types.ObjectId): Promise<Message[]> {
     const request = await this.SupportRequestModel.findById(supportRequest) //.populate('messages.author')
-    //console.log(request)
     return request.messages
   }
 

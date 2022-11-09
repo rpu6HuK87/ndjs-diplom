@@ -30,7 +30,6 @@ export class HotelsService implements IHotelService {
   }
 
   async search(params: SearchHotelParams): Promise<Hotel[]> {
-    //TODO: откуда взять offset и limit?
     return await this.HotelModel.find(params, {
       createdAt: 0,
       updatedAt: 0,
@@ -38,8 +37,8 @@ export class HotelsService implements IHotelService {
     }).exec()
   }
 
-  async update(id: Types.ObjectId, data: UpdateHotelParams): Promise<Hotel> {
-    return this.HotelModel.findByIdAndUpdate(id, data).exec()
+  async update(id: Types.ObjectId, data: UpdateHotelParams): Promise<HotelDocument> {
+    return this.HotelModel.findByIdAndUpdate(id, data, { new: true }).exec()
   }
 }
 
@@ -61,8 +60,6 @@ export class HotelRoomsService implements HotelRoomService {
   }
 
   async findById(id: Types.ObjectId, isEnabled?: true): Promise<HotelRoom> {
-    //Q: Не уверен, что верно отфильтровал по флагу isEnabled
-    //console.log(isEnabled)
     const room = await this.HotelRoomModel.findById(id, {
       createdAt: 0,
       updatedAt: 0,
@@ -78,7 +75,7 @@ export class HotelRoomsService implements HotelRoomService {
     return (isEnabled && room?.isEnabled) || isEnabled === undefined ? room : null
   }
 
-  search(params: SearchRoomsParams): Promise<HotelRoom[]> {
+  async search(params: SearchRoomsParams): Promise<HotelRoom[]> {
     const { limit, offset = 0, ...rest } = params
     const rooms = this.HotelRoomModel.find(rest, {
       isEnabled: 0,
@@ -95,14 +92,7 @@ export class HotelRoomsService implements HotelRoomService {
     return rooms.exec()
   }
 
-  update(id: Types.ObjectId, data: Partial<HotelRoom>): Promise<HotelRoom> {
-    //TODO: как быть с images? перезапись или объединение
-    //TODO: Формат ответа
-    /*     const room = this.HotelRoomModel.findById(id, {
-      createdAt: 0,
-      updatedAt: 0,
-      __v: 0
-    }) */
-    return this.HotelRoomModel.findByIdAndUpdate(id, data).exec()
+  async update(id: Types.ObjectId, data: Partial<HotelRoom>): Promise<HotelRoom> {
+    return this.HotelRoomModel.findByIdAndUpdate(id, data, { new: true }).exec()
   }
 }

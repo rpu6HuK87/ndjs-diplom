@@ -2,9 +2,9 @@ import { Types } from 'mongoose'
 import { Reservation } from '../schemas/reservation.schema'
 
 export interface ReservationDto {
-  userId: Types.ObjectId
-  hotelId: Types.ObjectId
-  roomId: Types.ObjectId
+  user: Types.ObjectId
+  hotel: Types.ObjectId
+  room: Types.ObjectId
   dateStart: Date
   dateEnd: Date
 }

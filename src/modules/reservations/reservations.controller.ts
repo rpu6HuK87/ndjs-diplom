@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, UseFilter
 import { Types } from 'mongoose'
 import { Roles } from 'src/common/decorators/roles.decorator'
 import { ValidationDtoFilter } from 'src/common/exceptions/filters/dto-validation.filter'
-import { ReservationSearchOptions } from './interfaces/reservation.interface'
+import { ReservationDto, ReservationSearchOptions } from './interfaces/reservation.interface'
 import { ReservationsService } from './reservations.service'
 import { Reservation } from './schemas/reservation.schema'
 import { isEnabledFlag, User } from 'src/common/decorators/my-custom.decorator'
@@ -19,7 +19,7 @@ export class ReservationsController {
   @Roles('client')
   @UseFilters(ValidationDtoFilter)
   @Post('reservations')
-  async addReservation(@Body() data, @User() user, @isEnabledFlag() flag: true) {
+  async addReservation(@Body() data: ReservationDto, @User() user, @isEnabledFlag() flag: true) {
     const room = await this.hotelRoomService.findById(data.room, flag)
     if (!room) throw new HttpException('Номер не найден', 400)
 
@@ -43,9 +43,8 @@ export class ReservationsController {
 
   @Roles('client')
   @Delete('reservations/:id')
-  removeReservation(@Param('id') id: Types.ObjectId) {
-    //TODO: формат ответа, коды ответа
-    return this.reservationsService.removeReservation(id)
+  removeReservation(@Param('id') id: Types.ObjectId, @User() user) {
+    return this.reservationsService.removeReservation(id, user)
   }
 }
 
@@ -65,10 +64,8 @@ export class ReservationsManagerController {
   }
 
   @Roles('manager')
-  @Get()
-  @Delete('reservations/:userId/:reservationId')
+  @Delete('reservations/:reservationId')
   removeReservation(@Param('reservationId') id: Types.ObjectId) {
-    //TODO: формат ответа, коды ответа
     return this.reservationsService.removeReservation(id)
   }
 }

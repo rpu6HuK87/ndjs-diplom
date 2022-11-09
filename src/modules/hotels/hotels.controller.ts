@@ -21,6 +21,7 @@ import { ValidationDtoFilter } from 'src/common/exceptions/filters/dto-validatio
 import { Hotel } from './schemas/hotel.schema'
 import { isEnabledFlag, isPublicRoute } from 'src/common/decorators/my-custom.decorator'
 import { FilesInterceptor } from '@nestjs/platform-express'
+import { uploadOptions } from 'src/common/exceptions/filters/upload.filter'
 
 @Controller('admin')
 export class HotelsController {
@@ -46,45 +47,34 @@ export class HotelsController {
 
   @Roles('admin')
   @Put('hotels/:id')
-  updateHotel(@Param('id') id: Types.ObjectId, @Body() data: UpdateHotelParams) {
-    return this.hotelsService.update(id, data)
+  async updateHotel(@Param('id') id: Types.ObjectId, @Body() data: UpdateHotelParams) {
+    const hotel = await this.hotelsService.update(id, data)
+    return {
+      id: hotel._id,
+      title: hotel.title,
+      description: hotel.description
+    }
   }
 
   @Roles('admin')
   @UseFilters(ValidationDtoFilter)
-  @UseInterceptors(FilesInterceptor('files', 5))
+  @UseInterceptors(FilesInterceptor('files', 5, uploadOptions))
   @Post('hotel-rooms')
-  async createHotelRoom(
-    @Body() data: HotelRoom,
-    @UploadedFiles(
-      new ParseFilePipeBuilder()
-        .addFileTypeValidator({ fileType: /(jpg|jpeg|png)$/ })
-        .addMaxSizeValidator({ maxSize: 5242880 })
-        .build()
-    )
-    files: Array<Express.Multer.File>
-  ) {
-    //TODO: нужна ли реализация сохранения файлов?
+  async createHotelRoom(@Body() data: HotelRoom, @UploadedFiles() files: Array<Express.Multer.File>) {
     data.images = files.map((file) => file.originalname)
-    //console.log(files)
+    console.log(files)
     return await this.hotelRoomsService.create(data)
   }
 
   @Roles('admin')
-  @UseInterceptors(FilesInterceptor('files', 5))
+  @UseInterceptors(FilesInterceptor('files', 5, uploadOptions))
   @Put('hotel-rooms/:id')
   updateHotelRoom(
     @Param('id') id: Types.ObjectId,
     @Body() data: HotelRoomDocument,
-    @UploadedFiles(
-      new ParseFilePipeBuilder()
-        .addFileTypeValidator({ fileType: /(jpg|jpeg|png)$/ })
-        .addMaxSizeValidator({ maxSize: 5242880 })
-        .build()
-    )
-    files: Array<Express.Multer.File>
+    @UploadedFiles() files: Array<Express.Multer.File>
   ) {
-    data.images = files.map((file) => file.originalname)
+    if (files) data.images = files.map((file) => file.originalname)
     return this.hotelRoomsService.update(id, data)
   }
 }

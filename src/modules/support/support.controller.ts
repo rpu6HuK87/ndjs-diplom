@@ -92,7 +92,6 @@ export class SupportManagerController {
   async getSupportRequests(@Query() params: GetChatListParams) {
     params.isActive = Boolean(params?.isActive)
     const requests = await this.supportRequestService.findSupportRequests(params)
-    //console.log(requests)
     return requests.map((req) => {
       const { messages, user, ...rest } = req
       const { _id, role, __v, password, ...client } = user
