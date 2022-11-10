@@ -1,10 +1,23 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseFilters, Query } from '@nestjs/common'
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseFilters,
+  Query
+} from '@nestjs/common'
 import { Types } from 'mongoose'
-import { identity } from 'rxjs'
 import { User } from 'src/common/decorators/my-custom.decorator'
 import { Roles } from 'src/common/decorators/roles.decorator'
 import { ValidationDtoFilter } from 'src/common/exceptions/filters/dto-validation.filter'
-import { CreateSupportRequestDto, GetChatListParams, SendMessageDto } from './interfaces/support.interface'
+import {
+  CreateSupportRequestDto,
+  GetChatListParams,
+  SendMessageDto
+} from './interfaces/support.interface'
 import { SupportRequestClientService, SupportRequestService } from './support.service'
 
 @Controller('client/support-requests')
@@ -18,7 +31,10 @@ export class SupportClientController {
   @UseFilters(ValidationDtoFilter)
   @Post()
   async createSupportRequest(@Body() data: CreateSupportRequestDto, @User() user) {
-    const request = await this.supportRequestClientService.createSupportRequest({ ...data, user: user._id })
+    const request = await this.supportRequestClientService.createSupportRequest({
+      ...data,
+      user: user._id
+    })
 
     const message = await this.supportRequestService.sendMessage({
       author: user._id,
@@ -39,17 +55,19 @@ export class SupportClientController {
   @Roles('client')
   @Get()
   async getSupportRequests(@Query() params: GetChatListParams, @User() user) {
-    params.isActive = Boolean(params?.isActive)
     const requests = await this.supportRequestService.findSupportRequests({
       ...params,
       user: user._id
     })
-    //return requests
     return requests.map((req) => {
-      const { messages, user, ...rest } = req
+      const { messages, user, isActive, createdAt, _id } = req
       return {
-        //...rest,
-        hasNewMessages: messages?.find((msg) => !msg.readAt && msg.author != user._id) ? true : false
+        id: _id,
+        createdAt,
+        isActive,
+        hasNewMessages: messages?.find((msg) => !msg.readAt && msg.author != user._id)
+          ? true
+          : false
       }
     })
   }
@@ -73,16 +91,28 @@ export class SupportClientController {
     return message
   }
 }
+
 @Controller('common/support-requests')
 export class SupportCommonController {
   constructor(private readonly supportRequestService: SupportRequestService) {}
   @Roles('client', 'manager')
   @Get(':id/messages')
   async getSupportRequestMessages(@Param('id') requestId: Types.ObjectId, @User() user) {
-    const messages = await this.supportRequestService.getMessages(requestId)
-    return messages
+    const messages = await this.supportRequestService.getMessages(
+      requestId,
+      user.role === 'client' ? user : false
+    )
+    return messages.map((msg) => {
+      const { author, ...rest } = msg
+      const { _id, name } = author
+      return {
+        ...rest,
+        author: { _id, name }
+      }
+    })
   }
 }
+
 @Controller('manager/support-requests')
 export class SupportManagerController {
   constructor(private readonly supportRequestService: SupportRequestService) {}
@@ -90,15 +120,16 @@ export class SupportManagerController {
   @Roles('manager')
   @Get()
   async getSupportRequests(@Query() params: GetChatListParams) {
-    params.isActive = Boolean(params?.isActive)
     const requests = await this.supportRequestService.findSupportRequests(params)
     return requests.map((req) => {
-      const { messages, user, ...rest } = req
-      const { _id, role, __v, password, ...client } = user
+      const { messages, user, isActive, createdAt, _id } = req
+      const { id = _id, name, email, contactPhone } = user
       return {
-        ...rest,
+        id: _id,
+        isActive,
+        createdAt,
         hasNewMessages: messages?.find((msg) => !msg.readAt) ? true : false,
-        client: client
+        client: { id, name, email, contactPhone }
       }
     })
   }

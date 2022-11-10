@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { HttpException, Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model, Types } from 'mongoose'
 import { SupportRequest, SupportRequestDocument } from './schemas/support-requests.schema'
@@ -11,6 +11,7 @@ import {
   SendMessageDto
 } from './interfaces/support.interface'
 import { Message, MessageDocument } from './schemas/message.schema'
+import { UserDocument } from '../users/schemas/user.schema'
 
 @Injectable()
 export class SupportRequestClientService implements ISupportRequestClientService {
@@ -59,7 +60,7 @@ export class SupportRequestService implements ISupportRequestService {
     }
   }
 
-  async findSupportRequests(params: GetChatListParams): Promise<SupportRequest[]> {
+  async findSupportRequests(params: GetChatListParams): Promise<SupportRequestDocument[]> {
     const { limit, offset = 0, ...rest } = params
     const request = this.SupportRequestModel.find(rest).skip(offset)
     if (!rest.user) request.populate('user')
@@ -68,8 +69,14 @@ export class SupportRequestService implements ISupportRequestService {
     return await request.exec()
   }
 
-  async getMessages(supportRequest: Types.ObjectId): Promise<Message[]> {
-    const request = await this.SupportRequestModel.findById(supportRequest) //.populate('messages.author')
+  async getMessages(supportRequest: Types.ObjectId, user?: UserDocument): Promise<Message[]> {
+    const request = await this.SupportRequestModel.findById(supportRequest).populate({
+      path: 'messages.author',
+      model: 'User'
+    })
+    if (user && request.user !== user._id) throw new HttpException('Доступ запрещен', 403)
+    //.select({ __v: 0 })
+    //.populate('messages.author')
     return request.messages
   }
 
