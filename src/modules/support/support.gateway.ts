@@ -9,16 +9,17 @@ import {
   ConnectedSocket,
   WsResponse
 } from '@nestjs/websockets'
+import { Types } from 'mongoose'
 import { from, map, Observable, pipe } from 'rxjs'
 import { Socket, Server } from 'socket.io'
+import { Roles } from 'src/common/decorators/roles.decorator'
+import { Message } from './schemas/message.schema'
 
-import { SupportRequestClientService } from './support.service'
+import { SupportRequestService } from './support.service'
 
 @WebSocketGateway()
-export class SupportGateway
-  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
-{
-  constructor(private readonly supportService: SupportRequestClientService) {}
+export class SupportGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+  constructor(private readonly supportService: SupportRequestService) {}
 
   @WebSocketServer() ws: Server
 
@@ -33,30 +34,14 @@ export class SupportGateway
   handleDisconnect(client: Socket) {
     console.log(`Отключился клиент: ${client.id}`)
   }
-  /*
-  @SubscribeMessage('createSupport')
-  create(@MessageBody() createSupportDto: CreateSupportDto) {
-    return this.supportService.create(createSupportDto)
+
+  @SubscribeMessage('subscribeToChat')
+  getAllMessages(
+    @MessageBody() chatId: Types.ObjectId,
+    @ConnectedSocket() client: Socket
+  ): Observable<WsResponse<Message[]>> {
+    console.log(client)
+    const data = this.supportService.getMessages(chatId)
+    return from(data).pipe(map((data) => ({ event: 'all-messages', data })))
   }
-
-
-   @SubscribeMessage('findAllSupport')
-  findAll() {
-    return this.supportService.findAll()
-  }
-
-  @SubscribeMessage('findOneSupport')
-  findOne(@MessageBody() id: number) {
-    return this.supportService.findOne(id)
-  }
-
-  @SubscribeMessage('updateSupport')
-  update(@MessageBody() updateSupportDto: UpdateSupportDto) {
-    return this.supportService.update(updateSupportDto.id, updateSupportDto)
-  }
-
-  @SubscribeMessage('removeSupport')
-  remove(@MessageBody() id: number) {
-    return this.supportService.remove(id)
-  } */
 }

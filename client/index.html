@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script
+      src="https://cdn.socket.io/3.1.3/socket.io.min.js"
+      integrity="sha384-cPwlPLvBTa3sKAgddT6krw0cJat7egBga3DJepJyrLl4Q9/5WLra3rrnMcyTyOnh"
+      crossorigin="anonymous"
+    ></script>
+  </head>
+  <body>
+    <span style="margin: auto">
+      <div class="form-group">
+        <div class="field">
+          <label for="text">Комментировать</label>
+          <textarea
+            required
+            rows="3"
+            name="comment"
+            class="textarea is-primary"
+            placeholder="message"
+            id="text"
+          ></textarea>
+        </div>
+      </div>
+
+      <!-- <button type="submit" id="send" class="button is-primary">
+        Комментировать книгу 629792000fa8368a0457d1ed
+      </button> -->
+    </span>
+
+    <hr />
+    <h2 style="margin: auto">Комментарии</h2>
+    <ul style="margin: auto" id="comments"></ul>
+
+    <script>
+      const socket = io.connect('ws://devubun:3000')
+      socket.on('connect', () => {
+        console.log('connected')
+      })
+
+      const inputText = document.querySelector('#text')
+      const sendBut = document.querySelector('#send')
+      const boxList = document.querySelector('#comments')
+      const template = (msg) => {
+        return `
+                <li class="list-group-item list-group-item-action">
+                    <p class="mb-1">${msg.text}</p>
+                </li>
+        `
+      }
+
+      socket.emit('subscribeToChat', '636193de3ebf0acf497a6fee')
+
+      socket.on('all-messages', (msg) => {
+        console.log(msg)
+        msg.map((m) => {
+          const div = template(m)
+          boxList.insertAdjacentHTML('beforeend', div)
+        })
+      })
+    </script>
+  </body>
+</html>

@@ -13,7 +13,6 @@ import {
 } from './interfaces/support.interface'
 import { Message, MessageDocument } from './schemas/message.schema'
 import { UserDocument } from '../users/schemas/user.schema'
-import { Request } from 'express'
 
 @Injectable()
 export class SupportRequestService implements ISupportRequestService {
@@ -56,9 +55,9 @@ export class SupportRequestService implements ISupportRequestService {
     return request.messages
   }
 
-  /* async subscribe(handler: (supportRequest: SupportRequest, message: Message) => void): () => void {
-		
-	} */
+  /* async subscribe(
+    handler: (supportRequest: SupportRequest, message: Message) => void
+  ): () => void {} */
 }
 
 @Injectable()

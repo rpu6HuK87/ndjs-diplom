@@ -9,9 +9,9 @@ services:
     environment:
       - MONGO_INITDB_ROOT_USERNAME=${DB_USERNAME:-root}
       - MONGO_INITDB_ROOT_PASSWORD=${DB_PASSWORD:-password}
-      - MONGO_INITDB_DATABASE=${DB_NAME:-books_library}
-    ports:
-      - 27017:27017  
+      - MONGO_INITDB_DATABASE=${DB_NAME:-hotels}
+    #ports:
+    #  - 27017:27017  
 
   mongo-express:
     image: mongo-express
