@@ -1,3 +1,4 @@
+import { UseGuards } from '@nestjs/common'
 import {
   WebSocketGateway,
   SubscribeMessage,
@@ -12,11 +13,16 @@ import {
 import { Types } from 'mongoose'
 import { from, map, Observable, pipe } from 'rxjs'
 import { Socket, Server } from 'socket.io'
+import { isWSRoute } from 'src/common/decorators/my-custom.decorator'
 import { Roles } from 'src/common/decorators/roles.decorator'
+import { AuthenticatedGuard } from 'src/common/guards/authenticated.guard'
 import { Message } from './schemas/message.schema'
 
 import { SupportRequestService } from './support.service'
 
+//@UseGuards(AuthenticatedGuard)
+//@isWSRoute()
+//@Roles('client', 'manager')
 @WebSocketGateway()
 export class SupportGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   constructor(private readonly supportService: SupportRequestService) {}
@@ -35,13 +41,18 @@ export class SupportGateway implements OnGatewayInit, OnGatewayConnection, OnGat
     console.log(`Отключился клиент: ${client.id}`)
   }
 
-  @SubscribeMessage('subscribeToChat')
+  @SubscribeMessage('getAllMessages')
   getAllMessages(
     @MessageBody() chatId: Types.ObjectId,
     @ConnectedSocket() client: Socket
   ): Observable<WsResponse<Message[]>> {
-    console.log(client)
+    //console.log(client)
     const data = this.supportService.getMessages(chatId)
     return from(data).pipe(map((data) => ({ event: 'all-messages', data })))
+  }
+
+  @SubscribeMessage('subscribeToChat')
+  subscribeToChat(@MessageBody() chatId: Types.ObjectId, @ConnectedSocket() client: Socket) {
+    client.join(chatId.toString())
   }
 }

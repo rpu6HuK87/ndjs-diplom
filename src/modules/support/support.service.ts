@@ -28,10 +28,11 @@ export class SupportRequestService implements ISupportRequestService {
     if (supportRequest) {
       //console.log(supportRequest.user, user._id)
       if (user && supportRequest.user !== user._id) throw new HttpException('Доступ запрещен', 403)
-
-      return await this.SupportRequestModel.findByIdAndUpdate(data.supportRequest, {
-        $push: { messages: new this.MessageModel(data) }
+      const message = new this.MessageModel(data)
+      await this.SupportRequestModel.findByIdAndUpdate(data.supportRequest, {
+        $push: { messages: message }
       })
+      return message
     }
   }
 

@@ -19,6 +19,7 @@ import {
   MarkMessagesAsReadDto,
   SendMessageDto
 } from './interfaces/support.interface'
+import { SupportGateway } from './support.gateway'
 import {
   SupportRequestClientService,
   SupportRequestEmployeeService,
@@ -29,7 +30,8 @@ import {
 export class SupportClientController {
   constructor(
     private readonly supportRequestClientService: SupportRequestClientService,
-    private readonly supportRequestService: SupportRequestService
+    private readonly supportRequestService: SupportRequestService,
+    private readonly supportGateway: SupportGateway
   ) {}
 
   @Roles('client')
@@ -94,6 +96,7 @@ export class SupportClientController {
       },
       user.role === 'client' ? user : false
     )
+    this.supportGateway.ws.to(requestId.toString()).emit('new-message', message)
 
     return message
   }

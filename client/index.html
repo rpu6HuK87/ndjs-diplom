@@ -37,7 +37,7 @@
     <ul style="margin: auto" id="comments"></ul>
 
     <script>
-      const socket = io.connect('ws://devubun:3000')
+      const socket = io.connect('ws://devubun:3000', { withCredentials: true })
       socket.on('connect', () => {
         console.log('connected')
       })
@@ -52,15 +52,24 @@
                 </li>
         `
       }
+      const appender = (m) => {
+        const div = template(m)
+        boxList.insertAdjacentHTML('beforeend', div)
+      }
 
+      socket.emit('getAllMessages', '636193de3ebf0acf497a6fee')
       socket.emit('subscribeToChat', '636193de3ebf0acf497a6fee')
 
       socket.on('all-messages', (msg) => {
         console.log(msg)
         msg.map((m) => {
-          const div = template(m)
-          boxList.insertAdjacentHTML('beforeend', div)
+          appender(m)
         })
+      })
+
+      socket.on('new-message', (m) => {
+        console.log(m)
+        appender(m)
       })
     </script>
   </body>
