@@ -6,33 +6,14 @@ import {
   CreateSupportRequestDto,
   GetChatListParams,
   ISupportRequestClientService,
+  ISupportRequestEmployeeService,
   ISupportRequestService,
   MarkMessagesAsReadDto,
   SendMessageDto
 } from './interfaces/support.interface'
 import { Message, MessageDocument } from './schemas/message.schema'
 import { UserDocument } from '../users/schemas/user.schema'
-
-@Injectable()
-export class SupportRequestClientService implements ISupportRequestClientService {
-  constructor(
-    @InjectModel(SupportRequest.name)
-    private SupportRequestModel: Model<SupportRequest>
-  ) {}
-
-  async createSupportRequest(data: CreateSupportRequestDto): Promise<SupportRequestDocument> {
-    const supportRequest = new this.SupportRequestModel(data)
-    return await supportRequest.save()
-  }
-
-  async markMessagesAsRead(params: MarkMessagesAsReadDto) {
-    return await this.SupportRequestModel.find(params)
-  }
-
-  async getUnreadCount(supportRequest: Types.ObjectId): Promise<Message[]> {
-    return await this.SupportRequestModel.find(supportRequest)
-  }
-}
+import { Request } from 'express'
 
 @Injectable()
 export class SupportRequestService implements ISupportRequestService {
@@ -43,20 +24,15 @@ export class SupportRequestService implements ISupportRequestService {
     private SupportRequestModel: Model<SupportRequest>
   ) {}
 
-  async sendMessage(data: SendMessageDto): Promise<Message> {
+  async sendMessage(data: SendMessageDto, user?: UserDocument): Promise<Message> {
     const supportRequest = await this.SupportRequestModel.findById(data.supportRequest)
     if (supportRequest) {
-      const message = await new this.MessageModel(data).save()
-      if (message) {
-        await this.SupportRequestModel.findByIdAndUpdate(
-          data.supportRequest,
-          { $push: { messages: message } }
-          /* {
-          messages: supportRequest.messages.push(message)
-        } */
-        )
-      }
-      return message
+      //console.log(supportRequest.user, user._id)
+      if (user && supportRequest.user !== user._id) throw new HttpException('Доступ запрещен', 403)
+
+      return await this.SupportRequestModel.findByIdAndUpdate(data.supportRequest, {
+        $push: { messages: new this.MessageModel(data) }
+      })
     }
   }
 
@@ -83,4 +59,105 @@ export class SupportRequestService implements ISupportRequestService {
   /* async subscribe(handler: (supportRequest: SupportRequest, message: Message) => void): () => void {
 		
 	} */
+}
+
+@Injectable()
+export class SupportRequestClientService implements ISupportRequestClientService {
+  constructor(
+    @InjectModel(SupportRequest.name)
+    private SupportRequestModel: Model<SupportRequest>
+  ) {}
+
+  async createSupportRequest(data: CreateSupportRequestDto): Promise<SupportRequestDocument> {
+    const supportRequest = new this.SupportRequestModel(data)
+    return await supportRequest.save()
+  }
+
+  async markMessagesAsRead(params: MarkMessagesAsReadDto) {
+    const request = await this.SupportRequestModel.findById(params.supportRequest)
+      .populate({
+        path: 'messages.author',
+        model: 'User'
+      })
+      .populate({
+        path: 'user',
+        model: 'User'
+      })
+
+    if (request.user._id.toString() !== params.user) throw new HttpException('Доступ запрещен', 403)
+
+    if (request.messages) {
+      const now = new Date()
+      const createdBefore = params.createdBefore ? new Date(params.createdBefore) : now
+
+      let needupdate = false
+      request.messages.map((msg) => {
+        const sentAt = new Date(msg.sentAt)
+        if (sentAt <= createdBefore && msg.author._id.toString() !== params.user && !msg.readAt) {
+          msg.readAt = now.toISOString()
+          if (!needupdate) needupdate = true
+        }
+      })
+      if (needupdate)
+        await this.SupportRequestModel.findByIdAndUpdate(
+          params.supportRequest,
+          { messages: request.messages },
+          { new: true }
+        )
+    }
+    return request
+  }
+
+  async getUnreadCount(supportRequest: Types.ObjectId, user?: UserDocument): Promise<Message[]> {
+    const request = await this.SupportRequestModel.findById(supportRequest)
+    return request.messages.filter((msg) => !msg.readAt && msg.author != user._id)
+  }
+}
+
+@Injectable()
+export class SupportRequestEmployeeService implements ISupportRequestEmployeeService {
+  constructor(
+    @InjectModel(SupportRequest.name)
+    private SupportRequestModel: Model<SupportRequest>
+  ) {}
+
+  async markMessagesAsRead(params: MarkMessagesAsReadDto) {
+    const request = await this.SupportRequestModel.findById(params.supportRequest).populate({
+      path: 'messages.author',
+      model: 'User'
+    })
+    if (request.messages) {
+      const now = new Date()
+      const createdBefore = params.createdBefore ? new Date(params.createdBefore) : now
+
+      let needupdate = false
+      request.messages.map((msg) => {
+        const sentAt = new Date(msg.sentAt)
+        if (sentAt <= createdBefore && msg.author._id.toString() === request.user && !msg.readAt) {
+          msg.readAt = now.toISOString()
+          if (!needupdate) needupdate = true
+        }
+      })
+      if (needupdate)
+        await this.SupportRequestModel.findByIdAndUpdate(
+          params.supportRequest,
+          { messages: request.messages },
+          { new: true }
+        )
+    }
+    return request
+  }
+
+  async getUnreadCount(supportRequest: Types.ObjectId): Promise<Message[]> {
+    const request = await this.SupportRequestModel.findById(supportRequest)
+    return request.messages.filter((msg) => !msg.readAt && msg.author != request.user)
+  }
+
+  async closeRequest(supportRequest: Types.ObjectId): Promise<void> {
+    return await this.SupportRequestModel.findByIdAndUpdate(
+      supportRequest,
+      { isActive: false },
+      { new: true }
+    )
+  }
 }

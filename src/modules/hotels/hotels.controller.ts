@@ -62,7 +62,7 @@ export class HotelsController {
   @Post('hotel-rooms')
   async createHotelRoom(@Body() data: HotelRoom, @UploadedFiles() files: Array<Express.Multer.File>) {
     data.images = files.map((file) => file.originalname)
-    console.log(files)
+    //console.log(files)
     return await this.hotelRoomsService.create(data)
   }
 

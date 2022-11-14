@@ -5,9 +5,9 @@ import {
   Body,
   Patch,
   Param,
-  Delete,
   UseFilters,
-  Query
+  Query,
+  HttpException
 } from '@nestjs/common'
 import { Types } from 'mongoose'
 import { User } from 'src/common/decorators/my-custom.decorator'
@@ -16,9 +16,14 @@ import { ValidationDtoFilter } from 'src/common/exceptions/filters/dto-validatio
 import {
   CreateSupportRequestDto,
   GetChatListParams,
+  MarkMessagesAsReadDto,
   SendMessageDto
 } from './interfaces/support.interface'
-import { SupportRequestClientService, SupportRequestService } from './support.service'
+import {
+  SupportRequestClientService,
+  SupportRequestEmployeeService,
+  SupportRequestService
+} from './support.service'
 
 @Controller('client/support-requests')
 export class SupportClientController {
@@ -72,8 +77,7 @@ export class SupportClientController {
     })
   }
 
-  @Roles('client')
-  @Roles('manager')
+  @Roles('client', 'manager')
   @UseFilters(ValidationDtoFilter)
   @Post(':id/messages')
   async sendMessage(
@@ -82,11 +86,14 @@ export class SupportClientController {
     data: SendMessageDto,
     @User() user
   ) {
-    const message = await this.supportRequestService.sendMessage({
-      author: user._id,
-      supportRequest: requestId,
-      text: data.text
-    })
+    const message = await this.supportRequestService.sendMessage(
+      {
+        author: user._id,
+        supportRequest: requestId,
+        text: data.text
+      },
+      user.role === 'client' ? user : false
+    )
 
     return message
   }
@@ -94,7 +101,11 @@ export class SupportClientController {
 
 @Controller('common/support-requests')
 export class SupportCommonController {
-  constructor(private readonly supportRequestService: SupportRequestService) {}
+  constructor(
+    private readonly supportRequestClientService: SupportRequestClientService,
+    private readonly supportRequestService: SupportRequestService,
+    private readonly supportRequestEmployeeService: SupportRequestEmployeeService
+  ) {}
   @Roles('client', 'manager')
   @Get(':id/messages')
   async getSupportRequestMessages(@Param('id') requestId: Types.ObjectId, @User() user) {
@@ -110,6 +121,26 @@ export class SupportCommonController {
         author: { _id, name }
       }
     })
+  }
+
+  @Roles('client', 'manager')
+  @Post(':id/messages/read')
+  async markAsRead(
+    @Body()
+    params: Partial<MarkMessagesAsReadDto>,
+    @Param('id') requestId: Types.ObjectId,
+    @User() user
+  ) {
+    const markData = {
+      user: user._id,
+      supportRequest: requestId,
+      createdBefore: params.createdBefore
+    }
+    if (user.role === 'client') await this.supportRequestClientService.markMessagesAsRead(markData)
+    if (user.role === 'manager')
+      await this.supportRequestEmployeeService.markMessagesAsRead(markData)
+
+    return { success: true }
   }
 }
 
