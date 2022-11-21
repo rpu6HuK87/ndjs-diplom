@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { FilterQuery, Model, Types } from 'mongoose'
+import { Model, Types } from 'mongoose'
 import {
   HotelRoomService,
   IHotelService,
@@ -76,7 +76,7 @@ export class HotelRoomsService implements HotelRoomService {
   }
 
   async search(params: SearchRoomsParams): Promise<HotelRoom[]> {
-    const { limit, offset = 0, ...rest } = params
+    const { limit, offset = 0, title, ...rest } = params
     const rooms = this.HotelRoomModel.find(rest, {
       isEnabled: 0,
       createdAt: 0,
@@ -89,7 +89,8 @@ export class HotelRoomsService implements HotelRoomService {
         select: { title: 1 }
       })
     if (limit) rooms.limit(limit)
-    return rooms.exec()
+    const findedRooms = await rooms.exec()
+    return title ? findedRooms.filter((room) => room.hotel.title == title) : findedRooms
   }
 
   async update(id: Types.ObjectId, data: Partial<HotelRoom>): Promise<HotelRoom> {

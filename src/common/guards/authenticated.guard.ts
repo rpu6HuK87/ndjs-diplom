@@ -11,9 +11,7 @@ export class AuthenticatedGuard implements CanActivate {
     if (isPublic) return true
 
     const isWSRoute = this.reflector.get<boolean>('isWSRoute', context.getHandler())
-    const request = isWSRoute
-      ? context.switchToWs().getClient()
-      : context.switchToHttp().getRequest()
+    const request = isWSRoute ? context.switchToWs().getClient() : context.switchToHttp().getRequest()
     //console.log(request)
 
     if (!request.isAuthenticated()) {

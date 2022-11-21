@@ -4,8 +4,6 @@ import { LocalAuthGuard } from 'src/common/guards/loc-auth.guard'
 
 @Controller('auth')
 export class AuthController {
-  constructor() {}
-
   @UseGuards(LocalAuthGuard)
   @isPublicRoute()
   @Post('login')

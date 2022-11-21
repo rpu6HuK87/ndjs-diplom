@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseFilters, BadRequestException, Query, Get } from '@nestjs/common'
+import { Body, Controller, Post, UseFilters, Query, Get } from '@nestjs/common'
 import { isPublicRoute } from 'src/common/decorators/my-custom.decorator'
 import { Roles } from 'src/common/decorators/roles.decorator'
 import { ValidationDtoFilter } from 'src/common/exceptions/filters/dto-validation.filter'
@@ -14,8 +14,8 @@ export class UsersController {
   @Post('client/register')
   async clientRegister(@Body() body: User) {
     const user = await this.userService.create({ ...body, role: 'client' })
-    const { password, ...result } = body
-    return { ...result, id: user.id }
+    delete body.password
+    return { ...body, id: user.id }
   }
 
   @Roles('admin')
@@ -23,8 +23,8 @@ export class UsersController {
   @Post('admin/users')
   async createUser(@Body() body: User) {
     const user = await this.userService.create(body)
-    const { password, ...result } = body
-    return { ...result, id: user.id }
+    delete body.password
+    return { ...body, id: user.id }
   }
 
   @Roles('admin')

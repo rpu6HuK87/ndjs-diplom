@@ -1,4 +1,3 @@
-import { UseGuards } from '@nestjs/common'
 import {
   WebSocketGateway,
   SubscribeMessage,
@@ -11,11 +10,8 @@ import {
   WsResponse
 } from '@nestjs/websockets'
 import { Types } from 'mongoose'
-import { from, map, Observable, pipe } from 'rxjs'
+import { from, map, Observable } from 'rxjs'
 import { Socket, Server } from 'socket.io'
-import { isWSRoute } from 'src/common/decorators/my-custom.decorator'
-import { Roles } from 'src/common/decorators/roles.decorator'
-import { AuthenticatedGuard } from 'src/common/guards/authenticated.guard'
 import { Message } from './schemas/message.schema'
 
 import { SupportRequestService } from './support.service'
@@ -29,7 +25,7 @@ export class SupportGateway implements OnGatewayInit, OnGatewayConnection, OnGat
 
   @WebSocketServer() ws: Server
 
-  afterInit(server: Server) {
+  afterInit(/* server: Server */) {
     console.log('WS server started!')
   }
 
@@ -43,8 +39,8 @@ export class SupportGateway implements OnGatewayInit, OnGatewayConnection, OnGat
 
   @SubscribeMessage('getAllMessages')
   getAllMessages(
-    @MessageBody() chatId: Types.ObjectId,
-    @ConnectedSocket() client: Socket
+    @MessageBody() chatId: Types.ObjectId
+    /* @ConnectedSocket() client: Socket */
   ): Observable<WsResponse<Message[]>> {
     //console.log(client)
     const data = this.supportService.getMessages(chatId)

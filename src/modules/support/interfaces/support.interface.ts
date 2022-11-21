@@ -1,6 +1,6 @@
 import { Types } from 'mongoose'
 
-import { Message, MessageDocument } from '../schemas/message.schema'
+import { Message } from '../schemas/message.schema'
 import { SupportRequest } from '../schemas/support-requests.schema'
 
 export interface CreateSupportRequestDto {

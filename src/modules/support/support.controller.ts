@@ -1,14 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  UseFilters,
-  Query,
-  HttpException
-} from '@nestjs/common'
+import { Controller, Get, Post, Body, Param, UseFilters, Query } from '@nestjs/common'
 import { Types } from 'mongoose'
 import { User } from 'src/common/decorators/my-custom.decorator'
 import { Roles } from 'src/common/decorators/roles.decorator'
@@ -20,11 +10,7 @@ import {
   SendMessageDto
 } from './interfaces/support.interface'
 import { SupportGateway } from './support.gateway'
-import {
-  SupportRequestClientService,
-  SupportRequestEmployeeService,
-  SupportRequestService
-} from './support.service'
+import { SupportRequestClientService, SupportRequestEmployeeService, SupportRequestService } from './support.service'
 
 @Controller('client/support-requests')
 export class SupportClientController {
@@ -43,7 +29,7 @@ export class SupportClientController {
       user: user._id
     })
 
-    const message = await this.supportRequestService.sendMessage({
+    await this.supportRequestService.sendMessage({
       author: user._id,
       supportRequest: request._id,
       text: data.text
@@ -72,9 +58,7 @@ export class SupportClientController {
         id: _id,
         createdAt,
         isActive,
-        hasNewMessages: messages?.find((msg) => !msg.readAt && msg.author != user._id)
-          ? true
-          : false
+        hasNewMessages: messages?.find((msg) => !msg.readAt && msg.author != user._id) ? true : false
       }
     })
   }
@@ -112,10 +96,7 @@ export class SupportCommonController {
   @Roles('client', 'manager')
   @Get(':id/messages')
   async getSupportRequestMessages(@Param('id') requestId: Types.ObjectId, @User() user) {
-    const messages = await this.supportRequestService.getMessages(
-      requestId,
-      user.role === 'client' ? user : false
-    )
+    const messages = await this.supportRequestService.getMessages(requestId, user.role === 'client' ? user : false)
     return messages.map((msg) => {
       const { author, ...rest } = msg
       const { _id, name } = author
@@ -140,8 +121,7 @@ export class SupportCommonController {
       createdBefore: params.createdBefore
     }
     if (user.role === 'client') await this.supportRequestClientService.markMessagesAsRead(markData)
-    if (user.role === 'manager')
-      await this.supportRequestEmployeeService.markMessagesAsRead(markData)
+    if (user.role === 'manager') await this.supportRequestEmployeeService.markMessagesAsRead(markData)
 
     return { success: true }
   }

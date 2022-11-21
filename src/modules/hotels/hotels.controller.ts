@@ -8,8 +8,7 @@ import {
   UseFilters,
   Put,
   UseInterceptors,
-  UploadedFiles,
-  ParseFilePipeBuilder
+  UploadedFiles
 } from '@nestjs/common'
 import { Types } from 'mongoose'
 

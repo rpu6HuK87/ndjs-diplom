@@ -1,10 +1,9 @@
-import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common'
+import { Module } from '@nestjs/common'
 import { HotelRoomsService, HotelsService } from './hotels.service'
 import { HotelRoomsController, HotelsController } from './hotels.controller'
 import { MongooseModule } from '@nestjs/mongoose'
 import { Hotel, HotelSchema } from './schemas/hotel.schema'
 import { HotelRoom, HotelRoomSchema } from './schemas/hotel-room.schema'
-import { HotelRoomsMiddleware } from 'src/common/middlewares/hotel-rooms.middleware'
 
 @Module({
   imports: [
@@ -18,8 +17,3 @@ import { HotelRoomsMiddleware } from 'src/common/middlewares/hotel-rooms.middlew
   exports: [HotelsService, HotelRoomsService]
 })
 export class HotelsModule {}
-/* export class HotelsModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer.apply(HotelRoomsMiddleware).forRoutes('common/hotel-rooms')
-  }
-} */

@@ -11,7 +11,7 @@ import {
   MarkMessagesAsReadDto,
   SendMessageDto
 } from './interfaces/support.interface'
-import { Message, MessageDocument } from './schemas/message.schema'
+import { Message } from './schemas/message.schema'
 import { UserDocument } from '../users/schemas/user.schema'
 
 @Injectable()
@@ -154,10 +154,6 @@ export class SupportRequestEmployeeService implements ISupportRequestEmployeeSer
   }
 
   async closeRequest(supportRequest: Types.ObjectId): Promise<void> {
-    return await this.SupportRequestModel.findByIdAndUpdate(
-      supportRequest,
-      { isActive: false },
-      { new: true }
-    )
+    return await this.SupportRequestModel.findByIdAndUpdate(supportRequest, { isActive: false }, { new: true })
   }
 }

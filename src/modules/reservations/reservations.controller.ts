@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, UseFilters, Query } from '@nestjs/common'
+import { Controller, Get, Post, Body, Param, Delete, UseFilters, Query } from '@nestjs/common'
 import { Types } from 'mongoose'
 import { Roles } from 'src/common/decorators/roles.decorator'
 import { ValidationDtoFilter } from 'src/common/exceptions/filters/dto-validation.filter'
