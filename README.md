@@ -12,7 +12,8 @@ cd ndjs-diplom
 Создайте копию файла env, внесите в него переменные окружения:
 
 ```js
-cp.env.example.env
+<!-- prettier-ignore -->
+cp .env.example .env
 ```
 
 Запустите приложение:
