@@ -11,8 +11,8 @@ cd ndjs-diplom
 
 Создайте копию файла env, внесите в него переменные окружения:
 
-```js
 <!-- prettier-ignore -->
+```js
 cp .env.example .env
 ```
 
